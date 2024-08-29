@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Roma100@localhost/users'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = 'your_secret_key_or_not_to_secret_=)'
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -45,13 +45,9 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        # Отладочный вывод
-        print(f"name: {name}, login: {login}, email: {email}, password: {password}")
-
-        # Проверка на наличие пароля
-        if not password:
-            flash('Password is required.', 'danger')
-            return redirect(url_for('register'))
+        if not name or not login or not email or not password:
+            flash('All fields are required!', 'danger')
+            return render_template('register.html')
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         new_user = User(name=name, login=login, email=email, password=hashed_password)
@@ -59,17 +55,14 @@ def register():
         try:
             db.session.add(new_user)
             db.session.commit()
-            flash('Registration successful. You can now log in.', 'success')
+            flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
             flash('Login or email already exists.', 'danger')
-            print(f"IntegrityError: {e}")
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred during registration.', 'danger')
-            print(f"Error: {e}")
+            return render_template('register.html')
 
+    # Если метод GET, просто отобразить форму регистрации
     return render_template('register.html')
 
 
@@ -82,6 +75,7 @@ def login():
         user = User.query.filter_by(login=login).first()
 
         if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id  # Устанавливаем идентификатор пользователя в сессию
             return redirect(url_for('info'))
         else:
             flash('Invalid login or password.', 'danger')
@@ -106,7 +100,6 @@ def add_user():
     try:
         db.session.add(new_user)
         db.session.commit()
-        flash('User added successfully.', 'success')
     except IntegrityError as e:
         db.session.rollback()
         flash('Login or email already exists.', 'danger')
@@ -118,8 +111,19 @@ def add_user():
 
 @app.route('/info')
 def info():
-    users = User.query.all()  # Получаем всех пользователей
+    if 'user_id' not in session:
+        flash('You must be logged in to view this page.', 'alert')
+        return redirect(url_for('login'))
+
+    users = User.query.all()
     return render_template('info.html', users=users)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
 
 
 if __name__ == '__main__':

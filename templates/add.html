@@ -1,19 +1,7 @@
-<form method="POST" action="{{ url_for('register') }}">
-    <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" class="form-control" id="name" name="name" required>
-    </div>
-    <div class="form-group">
-        <label for="login">Login</label>
-        <input type="text" class="form-control" id="login" name="login" required>
-    </div>
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Add User</button>
+<form action="{{ url_for('add_user') }}" method="POST">
+    <input type="text" name="name" placeholder="Name">
+    <input type="text" name="login" placeholder="Login">
+    <input type="email" name="email" placeholder="Email">
+    <input type="password" name="password" placeholder="Password">
+    <button type="submit">Register</button>
 </form>

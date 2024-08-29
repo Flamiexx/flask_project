@@ -3,7 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Info</title>
+    <title>Info Page</title>
+    <script>
+        // Скрипт для отображения alert с флеш-сообщением
+        window.onload = function() {
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    {% if category == 'alert' %}
+                        alert("{{ message }}");
+                    {% endif %}
+                {% endfor %}
+            {% endwith %}
+        };
+    </script>
 </head>
 <body>
     <h1>Registered Users</h1>
@@ -12,6 +24,6 @@
             <li>{{ user.name }} ({{ user.login }})</li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('index') }}">Back to Home</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
 </body>
 </html>
