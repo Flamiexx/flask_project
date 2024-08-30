@@ -31,12 +31,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-@app.route('/')
-def index():
-    users = User.query.all()
-    return render_template('index.html', users=users)
-
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -106,7 +100,7 @@ def add_user():
     except Exception as e:
         db.session.rollback()
         flash('An error occurred while adding the user.', 'danger')
-    return redirect(url_for('index'))
+    return redirect(url_for('add.html'))
 
 
 @app.route('/info')
